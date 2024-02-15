@@ -1,0 +1,1 @@
+export const abiMyFoodAddress = "0x0658e78F5BB369404Ea8aeCa97cBFd5ac4c2b046"
