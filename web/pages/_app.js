@@ -6,25 +6,34 @@ import { ethers, providers } from "ethers";
 
 function MyApp({ Component, pageProps }) {
   const [ walletAccount, setWalletAccount ] = useState("");
+  const [ isConnectedToRinkeby, setConnectedToRinkeby ] = useState(true);
 
-  const isMetaMaskConnected = async () => {
+  const checkIfMetaMaskIsConnected = async () => {
     const { ethereum } = window;
 
-    if(!ethereum) {
-      console.log("MetaMask is not connected!");
+    if (!ethereum) {
+      console.log("Check if Metamask is installed.");
     } else {
-      console.log("MetaMask is connected!");
+      console.log("Check if Metamask is installed.");
+
+      ethereum.on("chainChanged", function (networkId) {
+        if (parseInt(networkId) !== 4) {
+          setConnectedToRinkeby(false);
+        } else {
+          setConnectedToRinkeby(true);
+        }
+      });
     }
 
     const accounts = await ethereum.request({ method: "eth_accounts" });
 
     const provider = new ethers.providers.Web3Provider(ethereum);
     const signer = provider.getSigner();
-  
-    if(accounts.length != 0) {
+
+    if (accounts.length != 0) {
       setWalletAccount(accounts[0]);
     } else {
-      console.log("No authorized account!");
+      console.log("Not authorized");
     }
   };
 
@@ -52,37 +61,51 @@ function MyApp({ Component, pageProps }) {
 
   return (
     <div>
-      {
-        !walletAccount && (
-          <div className={styles.container}>
-            <button className={styles.walletButton} onClick={connectMetaMask}> Log In </button>
-          </div>
-        )
-      }
-      {
-        walletAccount && (
-          <div>
-            <main>
-              <nav className="border-b p-6">
-                <p className="text-4xl font-bold">Platzi Eaters</p>
-                <div className="flex mt-4">
-                  <Link href="/">
-                    <a className="mr-4 text-pink-500">Inicio</a>
-                  </Link>
-                  <Link href="/add-dish">
-                    <a className="mr-6 text-pink-500">Agregar platillos</a>
-                  </Link>
-                  <Link href="/my-dishes">
-                    <a className="mr-6 text-pink-500">Mis platillos</a>
-                  </Link>
-                </div>
-              </nav>
-            </main>
-            <Component {...pageProps} />
-          </div>
-        )
-      }
-    </div>
+    {!isConnectedToRinkeby && (
+      <div className={styles.container}>
+        <div className={styles.wrongNetwork}>
+          <h1>Red Equivocada</h1>
+          <p>
+            {" "}
+            Por favor conectarse a la red Rinkeby en su MetaMask. Gracias :D{" "}
+          </p>
+        </div>
+      </div>
+    )}
+
+    {(!walletAccount && isConnectedToRinkeby) && (
+      <div className={styles.container}>
+        <button
+          className={styles.eth_connect_wallet_button}
+          onClick={connectMetamask}
+        >
+          Iniciar
+        </button>
+      </div>
+    )}
+
+    {walletAccount && isConnectedToRinkeby && (
+      <div>
+        <main>
+          <nav className="border-b p-6">
+            <p className="text-4xl font-bold">Platzi Eaters</p>
+            <div className="flex mt-4">
+              <Link href="/">
+                <a className="mr-4 text-pink-500">Inicio</a>
+              </Link>
+              <Link href="/add-dish">
+                <a className="mr-6 text-pink-500">Agregar platillos</a>
+              </Link>
+              <Link href="/my-dishes">
+                <a className="mr-6 text-pink-500">Mis platillos</a>
+              </Link>
+            </div>
+          </nav>
+        </main>
+        <Component {...pageProps} />
+      </div>
+    )}
+  </div>
   );
 }
 
